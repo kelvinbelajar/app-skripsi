@@ -239,7 +239,7 @@
     <!-- Frame 1 -->
     <section class="frame frame-1">
         <div class="frame-1-content">
-            <h1 class="title">Acara Seni</h1>
+            <h1 class="title">Acara Seni tes</h1>
             <p class="description">
                 Acara seni penting karena menyediakan platform untuk ekspresi kreatif, memperkaya budaya, dan memperkuat
                 komunitas. Selain mendidik masyarakat tentang tradisi dan nilai-nilai budaya, acara seni juga mendukung
