@@ -14,6 +14,8 @@ use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\PemasukanController;
 use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\CheckoutController;
+use App\Models\BookingTiket;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +30,11 @@ use App\Http\Controllers\PengeluaranController;
 
 #route landing page
 Route::get('/', [LandingPageController::class, 'index']);
+Route::post('/checkout', [LandingPageController::class, 'checkout'])->name('checkout');
+Route::post('/booking/store', [LandingPageController::class, 'storeBooking'])->name('booking.store');
+Route::post('/payment-callback', [LandingPageController::class, 'handlePaymentCallback'])->name('payment.callback');
+Route::get('/test-booking', [LandingPageController::class, 'testBookingInsertion']);
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -113,5 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('printAllPengeluaran', [ReportController::class, 'printAllPengeluaran'])->name('printAllPengeluaran');
     Route::get('printPengeluaranbyID/{id}', [ReportController::class, 'printPengeluaranbyID'])->name('printPengeluaranbyID');
 });
+
+##route for checkout
 
 require __DIR__ . '/auth.php';

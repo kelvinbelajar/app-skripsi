@@ -49,20 +49,28 @@
         }
 
         .description {
-    font-family: 'Verdana', sans-serif;
-    font-size: 1rem;
-    max-width: 600px; /* Adjust this as needed */
-    max-height: 300px; /* Adjust this as needed */
-    text-align: center; /* Center the text inside the box */
-    position: absolute;
-    bottom: 40px;
-    right: 40px;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for better visibility */
-    padding: 10px; /* Padding inside the box */
-    box-sizing: border-box; /* Include padding in the width and height */
-    overflow: hidden; /* Hide overflow text */
-    border-radius: 5px; /* Optional: rounded corners */
-}
+            font-family: 'Verdana', sans-serif;
+            font-size: 1rem;
+            max-width: 600px;
+            /* Adjust this as needed */
+            max-height: 300px;
+            /* Adjust this as needed */
+            text-align: center;
+            /* Center the text inside the box */
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent background for better visibility */
+            padding: 10px;
+            /* Padding inside the box */
+            box-sizing: border-box;
+            /* Include padding in the width and height */
+            overflow: hidden;
+            /* Hide overflow text */
+            border-radius: 5px;
+            /* Optional: rounded corners */
+        }
 
 
         .login-link {
@@ -264,9 +272,10 @@
                         <p class="event-description">{{ $item->acara->deskripsi }}</p>
                     </div>
                     <button class="buy-ticket"
-                        onclick="showModal('{{ $item->jadwal->tanggal_mulai }}', '{{ $item->jadwal->tanggal_akhir }}', '{{ $item->acara->biaya_tiket }}', {{ $item->lokasi->latitude }}, {{ $item->lokasi->longitude }}, '{{ $item->lokasi->address }}', '{{ $item->lokasi->village->name }}', '{{ $item->lokasi->district->name }}', '{{ $item->lokasi->regency->name }}', '{{ $item->lokasi->province->name }}')">
+                        onclick="showModal('{{ $item->jadwal->tanggal_mulai }}', '{{ $item->jadwal->tanggal_akhir }}', '{{ $item->acara->biaya_tiket }}', {{ $item->lokasi->latitude }}, {{ $item->lokasi->longitude }}, '{{ $item->lokasi->address }}', '{{ $item->lokasi->village->name }}', '{{ $item->lokasi->district->name }}', '{{ $item->lokasi->regency->name }}', '{{ $item->lokasi->province->name }}', {{ $item->acara->id }})">
                         Buy Ticket
                     </button>
+
                 </div>
             @empty
                 <p>Tidak ada acara</p>
@@ -275,14 +284,35 @@
     </section>
 
     <!-- Modal -->
+    <!-- Modal -->
     <dialog id="myDialog">
         <h3 class="modal-title">Detail Acara</h3>
-        <div class="modal-content" id="modalContent">
-            <!-- Content will be injected here -->
-        </div>
-        <button class="modal-close" id="closeDialog"><- Close</button>
-                <button class="buy-ticket-modal" id="buyTicketModal">Buy Ticket -></button>
+        <form id="bookingForm" method="POST" action="/checkout" target="_blank">
+            @csrf
+            <input type="hidden" name="acara_id" id="acaraId">
+            <input type="hidden" name="harga" id="harga">
+
+            <!-- Form Fields -->
+            <div class="modal-content" id="modalContent">
+                <label for="nama_lengkap">Nama Lengkap:</label>
+                <input type="text" name="nama_lengkap" id="nama_lengkap" required>
+                <br>
+                <label for="email">Email:</label>
+                <input type="email" name="email" id="email" required>
+                <br>
+                <label for="notelp">Nomor Telepon:</label>
+                <input type="text" name="notelp" id="notelp" required>
+                <br>
+                <label for="jumlah_tiket">Jumlah Tiket:</label>
+                <input type="number" name="jumlah_tiket" id="jumlah_tiket" required>
+                <br>
+            </div>
+            <button class="modal-close" id="closeDialog" type="button">Close</button>
+            <button type="submit" class="buy-ticket-modal">Proceed to Payment</button>
+        </form>
     </dialog>
+
+
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
@@ -296,59 +326,70 @@
             const year = date.getFullYear();
             return `<div class="big-text">${day}</div><div class="month-year">${month} ${year}</div>`;
         }
-    
+
         function formatCurrency(amount) {
             // Format the number with thousands separator and Indonesian currency format
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR'
+            }).format(amount);
         }
-    
+
         function showModal(tanggalMulai, tanggalAkhir, biayaTiket, latitude, longitude, address, village, district, regency,
-            province) {
+            province, acaraId) {
             const formattedBiayaTiket = formatCurrency(biayaTiket);
-            const modalContent = `
-                <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
-                <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
-                <p><strong>Biaya Tiket:</strong> ${formattedBiayaTiket}</p>
-                <div id="map"></div>
-            `;
-            document.getElementById('modalContent').innerHTML = modalContent;
+
+            // Update the hidden inputs for form submission
+            document.getElementById('acaraId').value = acaraId;
+            document.getElementById('harga').value = biayaTiket;
+
+            // Update the modal content without removing the form
+            const detailsContent = `
+        <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
+        <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
+        <p><strong>Biaya Tiket:</strong> ${formattedBiayaTiket}</p>
+        <div id="map"></div>
+    `;
+            document.getElementById('modalContent').insertAdjacentHTML('afterbegin', detailsContent);
+
             document.getElementById('myDialog').showModal(); // Opens the dialog as a modal
-    
+
             // Initialize the map after the modal has been opened and content is injected
             const map = L.map('map').setView([latitude, longitude], 13);
-    
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-    
+
             // Add a marker for the specific event
             let popupContent = `
-                <b>Provinsi:</b> ${province}<br>
-                <b>Kabupaten/Kota:</b> ${regency}<br>
-                <b>Kecamatan:</b> ${district}<br>
-                <b>Kelurahan/Desa:</b> ${village}<br>
-                <b>Alamat:</b> ${address}<br>
-            `;
+        <b>Provinsi:</b> ${province}<br>
+        <b>Kabupaten/Kota:</b> ${regency}<br>
+        <b>Kecamatan:</b> ${district}<br>
+        <b>Kelurahan/Desa:</b> ${village}<br>
+        <b>Alamat:</b> ${address}<br>
+    `;
             L.marker([latitude, longitude]).addTo(map).bindPopup(popupContent);
         }
-    
+
+
         document.addEventListener('DOMContentLoaded', () => {
             @foreach ($acara as $item)
                 document.getElementById('eventDate{{ $item->id }}').innerHTML = formatDate(
                     '{{ $item->jadwal->tanggal_mulai }}');
             @endforeach
-    
+
             document.getElementById('closeDialog').addEventListener('click', () => {
                 document.getElementById('myDialog').close(); // Closes the dialog
             });
-    
+
             document.getElementById('buyTicketModal').addEventListener('click', () => {
                 // Add your ticket purchasing logic here, e.g., redirecting to a purchase page
-                window.open('/buy-ticket-page', '_blank'); // Replace with your actual ticket purchase page
+                window.open('/checkout', '_blank'); // Replace with your actual ticket purchase page
             });
         });
     </script>
-    
+
 </body>
 
 </html>
