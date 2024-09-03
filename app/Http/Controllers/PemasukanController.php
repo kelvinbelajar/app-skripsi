@@ -82,7 +82,7 @@ class PemasukanController extends Controller
             'id_acara' => 'required',
             'tanggal_pemasukan' => 'required',
             'nominal_pemasukan' => 'required',
-            'bukti_pemasukan' => 'required|file|mimes:pdf|max:2048' // Accept only PDF files
+            'bukti_pemasukan' => 'nullable|file|mimes:pdf|max:2048' // Accept only PDF files
         ]);
 
  
@@ -91,13 +91,16 @@ class PemasukanController extends Controller
         $pemasukan->nominal_pemasukan = $request->nominal_pemasukan;
 
         if ($request->hasFile('bukti_pemasukan')) {
-            $oldFileName = $pemasukan->bukti_pemasukan;
-            $newFileName = time() . '_' . $request->file('bukti_pemasukan')->getClientOriginalName();
-            $request->file('bukti_pemasukan')->storeAs('public/bukti_pemasukan', $newFileName);
-            if ($oldFileName) {
-                Storage::delete('public/bukti_pemasukan/' . $oldFileName);
+            // Delete old image if exists
+            if ($pemasukan->bukti_pemasukan) {
+                Storage::delete('public/bukti_pemasukan/' . $pemasukan->bukti_pemasukan);
             }
-            $pemasukan->bukti_pemasukan = $newFileName;
+
+            $image = $request->file('bukti_pemasukan');
+            $imageName = $image->hashName();
+            $image->storeAs('public/bukti_pemasukan', $imageName);
+
+            $pemasukan->bukti_pemasukan = $imageName;
         }
         
         $pemasukan->update();

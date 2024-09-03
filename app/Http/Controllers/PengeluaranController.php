@@ -77,33 +77,36 @@ class PengeluaranController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Pengeluaran $pengeluaran)
-    {
-        $request->validate([
-            'id_acara' => 'required',
-            'tanggal_pengeluaran' => 'required',
-            'nominal_pengeluaran' => 'required',
-            'bukti_pengeluaran' => 'required|file|mimes:pdf|max:2048' // Accept only PDF files
-        ]);
+        public function update(Request $request, Pengeluaran $pengeluaran)
+        {
+            $request->validate([
+                'id_acara' => 'required',
+                'tanggal_pengeluaran' => 'required',
+                'nominal_pengeluaran' => 'required',
+                'bukti_pengeluaran' => 'nullable|file|mimes:pdf|max:2048' // Accept only PDF files
+            ]);
 
-        $pengeluaran->id_acara = $request->id_acara;
-        $pengeluaran->tanggal_pengeluaran = $request->tanggal_pengeluaran;
-        $pengeluaran->nominal_pengeluaran = $request->nominal_pengeluaran;
+            $pengeluaran->id_acara = $request->id_acara;
+            $pengeluaran->tanggal_pengeluaran = $request->tanggal_pengeluaran;
+            $pengeluaran->nominal_pengeluaran = $request->nominal_pengeluaran;
 
-        if ($request->hasFile('bukti_pengeluaran')) {
-            $oldFileName = $pengeluaran->bukti_pengeluaran;
-            $newFileName = time() . '_' . $request->file('bukti_pengeluaran')->getClientOriginalName();
-            $request->file('bukti_pengeluaran')->storeAs('public/bukti_pengeluaran', $newFileName);
-            if ($oldFileName) {
-                Storage::delete('public/bukti_pengeluaran/' . $oldFileName);
+            if ($request->hasFile('bukti_pengeluaran')) {
+                // Delete old image if exists
+                if ($pengeluaran->bukti_pengeluaran) {
+                    Storage::delete('public/bukti_pengeluaran/' . $pengeluaran->bukti_pengeluaran);
+                }
+
+                $image = $request->file('bukti_pengeluaran');
+                $imageName = $image->hashName();
+                $image->storeAs('public/bukti_pengeluaran', $imageName);
+
+                $pengeluaran->bukti_pengeluaran = $imageName;
             }
-            $pengeluaran->bukti_pengeluaran = $newFileName;
+
+            $pengeluaran->update();
+
+            return redirect()->route('pengeluarans.index')->with('success', 'Pengeluaran updated successfully.');
         }
-
-        $pengeluaran->update();
-
-        return redirect()->route('pengeluarans.index')->with('success', 'Pengeluaran updated successfully.');
-    }
 
     /**
      * Remove the specified resource from storage.

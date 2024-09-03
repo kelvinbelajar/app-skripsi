@@ -11,6 +11,8 @@ use Midtrans\Config;
 use Midtrans\Snap;
 use Midtrans\Transaction;
 use App\Models\BookingTiket;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingTicketMail;
 use Illuminate\Support\Facades\Log;
 
 class LandingPageController extends Controller
@@ -22,72 +24,47 @@ class LandingPageController extends Controller
         return view('landing', compact('acara', 'locations'));
     }
 
-    public function checkout(Request $request)
-    {
-        // Set Midtrans configuration
-        Config::$serverKey = config('midtrans.serverKey');
-        Config::$isProduction = false;
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
-
-        // Create a transaction
-        $params = [
-            'transaction_details' => [
-                'order_id' => uniqid(),
-                'gross_amount' => $request->harga * $request->jumlah_tiket,
-            ],
-            'customer_details' => [
-                'first_name' => $request->nama_lengkap,
-                'email' => $request->email,
-                'phone' => $request->notelp,
-            ],
-            'item_details' => [
-                [
-                    'id' => $request->acara_id,
-                    'price' => $request->harga,
-                    'quantity' => $request->jumlah_tiket,
-                    'name' => "Ticket for Event"
-                ],
-            ],
-        ];
-
-        $snapToken = Snap::getSnapToken($params);
-
-        // Store transaction details in session
-        session(['transaction_data' => $params]);
-
-        return view('payment', compact('snapToken'));
-    }
-
-
-
-    public function handlePaymentCallback(Request $request)
+    public function bookTicket(Request $request)
 {
-    $transactionData = session('transaction_data');
-    
+    Log::info('Booking request received', $request->all());
+
     try {
-        // Verify the transaction using Midtrans Transaction API
-        $transaction = Transaction::status($request->transaction_id);
+        // Validate the incoming request
+        $validatedData = $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
+            'notelp' => 'required|string|max:15',
+            'email' => 'required|email|max:255',
+            'jumlah_tiket' => 'required|integer|min:1',
+            'acara_id' => 'required|exists:acaras,id', // Validate acara_id instead of id_acara
+            'harga' => 'required|numeric',
+        ]);
+        
+        $hitung = $validatedData['harga'] * $validatedData['jumlah_tiket'];
+        return $hitung;
+        
 
-        if ($transaction['transaction_status'] === 'settlement') {
-            $fileName = '1725020294_402-717-2-PB.pdf'; // Change as necessary
-            $filePath = 'public/bukti_bayar/' . $fileName; // Ensure the correct path
+        Log::info('Validated data', $validatedData);
 
-            BookingTiket::create([
-                'id_acara' => $transactionData['item_details'][0]['id'],
-                'nama_lengkap' => $transactionData['customer_details']['first_name'],
-                'notelp' => $transactionData['customer_details']['phone'],
-                'email' => $transactionData['customer_details']['email'],
-                'bukti_bayar' => $filePath, // Adjust path as needed
-            ]);
+        // Create a new booking record
+        $bookingTiket = BookingTiket::create([
+            'id_acara' => $validatedData['acara_id'], // Use acara_id here
+            'nama_lengkap' => $validatedData['nama_lengkap'],
+            'notelp' => $validatedData['notelp'],
+            'email' => $validatedData['email'],
+            'status_bayar' => 'Belum Bayar',
+        ]);
 
-            return response()->json(['status' => 'success']);
-        } else {
-            return response()->json(['status' => 'failed', 'message' => 'Transaction status is not settlement']);
-        }
+        
+
+        Log::info('Booking saved', $bookingTiket->toArray());
+
+        // Send a confirmation email
+        Mail::to($validatedData['email'])->send(new BookingTicketMail($bookingTiket));
+
+        return redirect()->back()->with('success', 'Booking successful! Check your email for details.');
     } catch (\Exception $e) {
-        Log::error('Payment callback error: ' . $e->getMessage());
-        return response()->json(['status' => 'error', 'message' => 'Error verifying payment: ' . $e->getMessage()]);
+        Log::error('Error during booking', ['error' => $e->getMessage()]);
+        return redirect()->back()->with('error', 'Something went wrong. Please try again.');
     }
 }
 
@@ -95,16 +72,14 @@ class LandingPageController extends Controller
 
 
 
-    public function testBookingInsertion()
-    {
-        $booking = BookingTiket::create([
-            'id_acara' => 1,  // Use valid test data
-            'nama_lengkap' => 'Test Name',
-            'notelp' => '1234567890',
-            'email' => 'test@example.com',
-            'bukti_bayar' => 'test.pdf'
-        ]);
 
-        dd($booking);
+    public function sendTestEmail()
+    {
+        Mail::raw('This is a test email to verify SMTP settings.', function ($message) {
+            $message->to('mhmmdalfkr026@gmail.com')
+                ->subject('Test Email');
+        });
+
+        return 'Test email sent!';
     }
 }

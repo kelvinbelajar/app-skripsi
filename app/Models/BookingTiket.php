@@ -14,7 +14,7 @@ class BookingTiket extends Model
         'nama_lengkap',
         'notelp',
         'email',
-        'bukti_bayar',
+        'status_bayar',
     ];
 
     public function acara()

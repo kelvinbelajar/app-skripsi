@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookingTicketMail;
 use App\Models\BookingTiket;
 use Illuminate\Http\Request;
 use App\Models\Acara;

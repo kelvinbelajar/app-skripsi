@@ -30,10 +30,13 @@ use App\Models\BookingTiket;
 
 #route landing page
 Route::get('/', [LandingPageController::class, 'index']);
-Route::post('/checkout', [LandingPageController::class, 'checkout'])->name('checkout');
-Route::post('/booking/store', [LandingPageController::class, 'storeBooking'])->name('booking.store');
-Route::post('/payment-callback', [LandingPageController::class, 'handlePaymentCallback'])->name('payment.callback');
-Route::get('/test-booking', [LandingPageController::class, 'testBookingInsertion']);
+
+// In web.php
+Route::post('/book-ticket', [LandingPageController::class, 'bookTicket'])->name('book-ticket');
+
+
+##route for test email
+Route::get('/test-email', [LandingPageController::class, 'sendtestEmail']);
 
 
 Route::get('/dashboard', function () {

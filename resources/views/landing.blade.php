@@ -172,6 +172,7 @@
             margin-bottom: 10px;
         }
 
+        .info-button,
         .buy-ticket {
             background-color: #ff6347;
             color: white;
@@ -182,6 +183,7 @@
             font-size: 1rem;
         }
 
+        .info-button:hover,
         .buy-ticket:hover {
             background-color: #e55337;
         }
@@ -239,6 +241,13 @@
             margin-top: 10px;
             border-radius: 10px;
         }
+
+        .event-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
@@ -249,10 +258,11 @@
         <div class="frame-1-content">
             <h1 class="title">Acara Seni tes</h1>
             <p class="description">
-                Acara seni penting karena menyediakan platform untuk ekspresi kreatif, memperkaya budaya, dan memperkuat
-                komunitas. Selain mendidik masyarakat tentang tradisi dan nilai-nilai budaya, acara seni juga mendukung
-                ekonomi lokal dan memberikan hiburan serta inspirasi. Dengan demikian, acara seni berperan dalam
-                pengembangan individu dan memperkaya kehidupan sosial serta kultural.</p>
+                Acara seni penting karena menyediakan platform untuk ekspresi kreatif, memperkaya budaya, dan memperkuat komunitas.
+                Selain mendidik masyarakat tentang tradisi dan nilai-nilai budaya, acara seni juga mendukung ekonomi lokal dan 
+                memberikan hiburan serta inspirasi. Dengan demikian, acara seni berperan dalam pengembangan individu dan memperkaya
+                kehidupan sosial serta kultural.
+            </p>
         </div>
         <div class="login-link">
             <a href="/login">Login</a>
@@ -263,37 +273,43 @@
     <section class="frame frame-2">
         <h2 class="upcoming-title">Acara yang akan datang</h2>
         @forelse ($acara as $item)
-            <div class="event-blocks">
-                <div class="event-block">
-                    <div class="event-date" id="eventDate{{ $item->id }}"></div>
-                    <img src="{{ asset('storage/acaras/' . $item->acara->gambar) }}" class="event-image">
-                    <div class="event-details">
-                        <h3 class="event-title">{{ $item->acara->nama_acara }}</h3>
-                        <p class="event-description">{{ $item->acara->deskripsi }}</p>
-                    </div>
+        <div class="event-blocks">
+            <div class="event-block">
+                <div class="event-date" id="eventDate{{ $item->id }}"></div>
+                <img src="{{ asset('storage/acaras/' . $item->acara->gambar) }}" class="event-image">
+                <div class="event-details">
+                    <h3 class="event-title">{{ $item->acara->nama_acara }}</h3>
+                    <p class="event-description">{{ $item->acara->deskripsi }}</p>
+                </div>
+                <div class="event-actions">
+                    <button class="info-button"
+                        onclick="showEventInfo('{{ $item->jadwal->tanggal_mulai }}', '{{ $item->jadwal->tanggal_akhir }}', {{ $item->lokasi->latitude }}, {{ $item->lokasi->longitude }}, '{{ $item->lokasi->address }}', '{{ $item->lokasi->village->name }}', '{{ $item->lokasi->district->name }}', '{{ $item->lokasi->regency->name }}', '{{ $item->lokasi->province->name }}')">
+                        Event Info
+                    </button>
                     <button class="buy-ticket"
-                        onclick="showModal('{{ $item->jadwal->tanggal_mulai }}', '{{ $item->jadwal->tanggal_akhir }}', '{{ $item->acara->biaya_tiket }}', {{ $item->lokasi->latitude }}, {{ $item->lokasi->longitude }}, '{{ $item->lokasi->address }}', '{{ $item->lokasi->village->name }}', '{{ $item->lokasi->district->name }}', '{{ $item->lokasi->regency->name }}', '{{ $item->lokasi->province->name }}', {{ $item->acara->id }})">
+                        onclick="showBuyTicketModal('{{ $item->acara->biaya_tiket }}', {{ $item->acara->id }})">
                         Buy Ticket
                     </button>
-
                 </div>
+            </div>
             @empty
-                <p>Tidak ada acara</p>
-        @endforelse
+            <p>Tidak ada acara</p>
+            @endforelse
         </div>
     </section>
 
     <!-- Modal -->
-    <!-- Modal -->
     <dialog id="myDialog">
         <h3 class="modal-title">Detail Acara</h3>
-        <form id="bookingForm" method="POST" action="/checkout" target="_blank">
+        <form id="bookingForm" method="POST" action="{{ route('book-ticket') }}">
             @csrf
             <input type="hidden" name="acara_id" id="acaraId">
             <input type="hidden" name="harga" id="harga">
 
             <!-- Form Fields -->
-            <div class="modal-content" id="modalContent">
+            <div id="ticketDetails"></div> <!-- New container for dynamic ticket content -->
+
+            <div class="modal-content">
                 <label for="nama_lengkap">Nama Lengkap:</label>
                 <input type="text" name="nama_lengkap" id="nama_lengkap" required>
                 <br>
@@ -312,14 +328,10 @@
         </form>
     </dialog>
 
-
-
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         function formatDate(dateString) {
-            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September",
-                "Oktober", "November", "Desember"
-            ];
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             const date = new Date(dateString);
             const day = date.getDate();
             const month = months[date.getMonth()];
@@ -328,29 +340,20 @@
         }
 
         function formatCurrency(amount) {
-            // Format the number with thousands separator and Indonesian currency format
             return new Intl.NumberFormat('id-ID', {
                 style: 'currency',
                 currency: 'IDR'
             }).format(amount);
         }
 
-        function showModal(tanggalMulai, tanggalAkhir, biayaTiket, latitude, longitude, address, village, district, regency,
-            province, acaraId) {
-            const formattedBiayaTiket = formatCurrency(biayaTiket);
-
-            // Update the hidden inputs for form submission
-            document.getElementById('acaraId').value = acaraId;
-            document.getElementById('harga').value = biayaTiket;
-
+        function showEventInfo(tanggalMulai, tanggalAkhir, latitude, longitude, address, village, district, regency, province) {
             // Update the modal content without removing the form
             const detailsContent = `
-        <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
-        <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
-        <p><strong>Biaya Tiket:</strong> ${formattedBiayaTiket}</p>
-        <div id="map"></div>
-    `;
-            document.getElementById('modalContent').insertAdjacentHTML('afterbegin', detailsContent);
+                <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
+                <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
+                <div id="map"></div>
+            `;
+            document.getElementById('modalContent').innerHTML = detailsContent;
 
             document.getElementById('myDialog').showModal(); // Opens the dialog as a modal
 
@@ -363,33 +366,40 @@
 
             // Add a marker for the specific event
             let popupContent = `
-        <b>Provinsi:</b> ${province}<br>
-        <b>Kabupaten/Kota:</b> ${regency}<br>
-        <b>Kecamatan:</b> ${district}<br>
-        <b>Kelurahan/Desa:</b> ${village}<br>
-        <b>Alamat:</b> ${address}<br>
-    `;
+                <b>Provinsi:</b> ${province}<br>
+                <b>Kabupaten/Kota:</b> ${regency}<br>
+                <b>Kecamatan:</b> ${district}<br>
+                <b>Kelurahan/Desa:</b> ${village}<br>
+                <b>Alamat:</b> ${address}<br>
+            `;
             L.marker([latitude, longitude]).addTo(map).bindPopup(popupContent);
         }
 
+        function showBuyTicketModal(biayaTiket, acaraId) {
+            const formattedBiayaTiket = formatCurrency(biayaTiket);
+
+            // Update the hidden inputs for form submission
+            document.getElementById('acaraId').value = acaraId;
+            document.getElementById('harga').value = biayaTiket;
+
+            const ticketDetailsContent = `
+                <p><strong>Biaya Tiket:</strong> ${formattedBiayaTiket}</p>
+            `;
+            document.getElementById('ticketDetails').innerHTML = ticketDetailsContent;
+
+            document.getElementById('myDialog').showModal(); // Opens the dialog as a modal
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             @foreach ($acara as $item)
-                document.getElementById('eventDate{{ $item->id }}').innerHTML = formatDate(
-                    '{{ $item->jadwal->tanggal_mulai }}');
+                document.getElementById('eventDate{{ $item->id }}').innerHTML = formatDate('{{ $item->jadwal->tanggal_mulai }}');
             @endforeach
 
             document.getElementById('closeDialog').addEventListener('click', () => {
                 document.getElementById('myDialog').close(); // Closes the dialog
             });
-
-            document.getElementById('buyTicketModal').addEventListener('click', () => {
-                // Add your ticket purchasing logic here, e.g., redirecting to a purchase page
-                window.open('/checkout', '_blank'); // Replace with your actual ticket purchase page
-            });
         });
     </script>
-
 </body>
 
 </html>

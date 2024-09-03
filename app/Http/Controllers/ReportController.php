@@ -43,7 +43,7 @@ class ReportController extends Controller
             'judul' => 'Laporan Data PER Event Organizer'
         ];
 
-        $report = PDF::loadView('event-organizers.printbyId', $data)->setPaper('A4', 'landscape');
+        $report = PDF::loadView('event-organizers.printbyId', $data)->setPaper('A4', 'portrait');
         $nama_tgl = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('d/m/y'), 6, 2);
         $nama_jam = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('h:i:s'), 6, 2);
 
@@ -57,7 +57,7 @@ class ReportController extends Controller
         $data = [
             'acara' => $acara,
             'tanggal' => date('d F Y'),
-            'judul' => 'Laporan Data PER Acara'
+            'judul' => 'Laporan Data Acara'
         ];
 
         $report = PDF::loadView('acaras.print', $data)->setPaper('A4', 'potrait');
@@ -84,10 +84,10 @@ class ReportController extends Controller
         $data = [
             'acara' => $acara,
             'tanggal' => date('d F Y'),
-            'judul' => 'Laporan Data Per Acara'
+            'judul' => 'Laporan Data PER Acara'
         ];
 
-        $report = PDF::loadView('acaras.printbyId', $data)->setPaper('A4', 'landscape');
+        $report = PDF::loadView('acaras.printbyId', $data)->setPaper('A4', 'portrait');
         $nama_tgl = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('d/m/y'), 6, 2);
         $nama_jam = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('h:i:s'), 6, 2);
 
@@ -101,10 +101,10 @@ class ReportController extends Controller
         $data = [
             'jadwal' => $jadwal,
             'tanggal' => date('d F Y'),
-            'judul' => 'Laporan Data Per Jadwal'
+            'judul' => 'Laporan Data Jadwal'
         ];
 
-        $report = PDF::loadView('jadwals.print', $data)->setPaper('A4', 'potrait');
+        $report = PDF::loadView('jadwals.print', $data)->setPaper('A4', 'portrait');
         $nama_tgl = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('d/m/y'), 6, 2);
         $nama_jam = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('h:i:s'), 6, 2);
 
@@ -131,7 +131,7 @@ class ReportController extends Controller
             'judul' => 'Laporan Data PER Jadwal'
         ];
 
-        $report = PDF::loadView('jadwals.printbyId', $data)->setPaper('A4', 'landscape');
+        $report = PDF::loadView('jadwals.printbyId', $data)->setPaper('A4', 'portrait');
         $nama_tgl = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('d/m/y'), 6, 2);
         $nama_jam = substr(date('d/m/y'), 0, 2) . substr(date('d/m/y'), 3, 2) . substr(date('h:i:s'), 6, 2);
 
@@ -285,7 +285,7 @@ class ReportController extends Controller
         $data = [
             'bookingtiket' => $bookingtiket,
             'tanggal' => date('d F Y'),
-            'judul' => 'Laporan Data Booking Tiket'
+            'judul' => 'Laporan Data Per Booking Tiket'
         ];
 
         $report = PDF::loadView('booking_tikets.printbyId', $data)->setPaper('A4', 'potrait');
@@ -345,7 +345,7 @@ class ReportController extends Controller
         $data = [
             'pengeluaran' => $pengeluaran,
             'tanggal' => date('d F Y'),
-            'judul' => 'Laporan Data Booking Tiket'
+            'judul' => 'Laporan Data Pengeluaran'
         ];
 
         $report = PDF::loadView('pengeluarans.print', $data)->setPaper('A4', 'potrait');
