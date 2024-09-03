@@ -14,6 +14,8 @@ use App\Models\BookingTiket;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingTicketMail;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\BookingTiketEmail;
+use App\Models\User;
 
 class LandingPageController extends Controller
 {
@@ -26,7 +28,6 @@ class LandingPageController extends Controller
 
     public function bookTicket(Request $request)
 {
-    Log::info('Booking request received', $request->all());
 
     try {
         // Validate the incoming request
@@ -40,10 +41,6 @@ class LandingPageController extends Controller
         ]);
         
         $hitung = $validatedData['harga'] * $validatedData['jumlah_tiket'];
-        return $hitung;
-        
-
-        Log::info('Validated data', $validatedData);
 
         // Create a new booking record
         $bookingTiket = BookingTiket::create([
@@ -52,14 +49,12 @@ class LandingPageController extends Controller
             'notelp' => $validatedData['notelp'],
             'email' => $validatedData['email'],
             'status_bayar' => 'Belum Bayar',
-        ]);
+            'total' => $hitung,
+        ]);       
 
-        
 
-        Log::info('Booking saved', $bookingTiket->toArray());
-
-        // Send a confirmation email
-        Mail::to($validatedData['email'])->send(new BookingTicketMail($bookingTiket));
+        // Send an email to the user
+        Mail::to($validatedData['email'])->send(new BookingTicketMail($validatedData));
 
         return redirect()->back()->with('success', 'Booking successful! Check your email for details.');
     } catch (\Exception $e) {

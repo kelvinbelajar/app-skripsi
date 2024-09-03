@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('nama_lengkap');
             $table->string('notelp');
             $table->string('email');
-            $table->string('bukti_bayar');
             $table->timestamps();
         });
     }

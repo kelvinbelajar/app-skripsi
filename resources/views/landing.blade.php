@@ -247,6 +247,9 @@
             flex-direction: column;
             gap: 10px;
         }
+        ::-webkit-scrollbar {
+            display: none;
+        }
 
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />

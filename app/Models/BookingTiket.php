@@ -15,6 +15,7 @@ class BookingTiket extends Model
         'notelp',
         'email',
         'status_bayar',
+        'total',
     ];
 
     public function acara()
