@@ -28,7 +28,6 @@ class LandingPageController extends Controller
 
     public function bookTicket(Request $request)
 {
-
     try {
         // Validate the incoming request
         $validatedData = $request->validate([
@@ -40,18 +39,17 @@ class LandingPageController extends Controller
             'harga' => 'required|numeric',
         ]);
         
-        $hitung = $validatedData['harga'] * $validatedData['jumlah_tiket'];
+        $totalAmount = $validatedData['harga'] * $validatedData['jumlah_tiket'];
 
         // Create a new booking record
         $bookingTiket = BookingTiket::create([
-            'id_acara' => $validatedData['acara_id'], // Use acara_id here
+            'id_acara' => $validatedData['acara_id'], // Ensure the model uses 'id_acara'
             'nama_lengkap' => $validatedData['nama_lengkap'],
             'notelp' => $validatedData['notelp'],
             'email' => $validatedData['email'],
             'status_bayar' => 'Belum Bayar',
-            'total' => $hitung,
-        ]);       
-
+            'total' => $totalAmount,
+        ]);
 
         // Send an email to the user
         Mail::to($validatedData['email'])->send(new BookingTicketMail($validatedData));
@@ -68,10 +66,11 @@ class LandingPageController extends Controller
 
 
 
+
     public function sendTestEmail()
     {
         Mail::raw('This is a test email to verify SMTP settings.', function ($message) {
-            $message->to('mhmmdalfkr026@gmail.com')
+            $message->to('mashpeek@gmail.com')
                 ->subject('Test Email');
         });
 

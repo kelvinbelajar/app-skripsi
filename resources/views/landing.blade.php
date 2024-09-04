@@ -259,7 +259,7 @@
     <!-- Frame 1 -->
     <section class="frame frame-1">
         <div class="frame-1-content">
-            <h1 class="title">Acara Seni tes</h1>
+            <h1 class="title">Acara Seni</h1>
             <p class="description">
                 Acara seni penting karena menyediakan platform untuk ekspresi kreatif, memperkaya budaya, dan memperkuat komunitas.
                 Selain mendidik masyarakat tentang tradisi dan nilai-nilai budaya, acara seni juga mendukung ekonomi lokal dan 
@@ -312,7 +312,7 @@
             <!-- Form Fields -->
             <div id="ticketDetails"></div> <!-- New container for dynamic ticket content -->
 
-            <div class="modal-content">
+            <div id="modalContent" class="modal-content">
                 <label for="nama_lengkap">Nama Lengkap:</label>
                 <input type="text" name="nama_lengkap" id="nama_lengkap" required>
                 <br>
@@ -350,33 +350,34 @@
         }
 
         function showEventInfo(tanggalMulai, tanggalAkhir, latitude, longitude, address, village, district, regency, province) {
-            // Update the modal content without removing the form
-            const detailsContent = `
-                <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
-                <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
-                <div id="map"></div>
-            `;
-            document.getElementById('modalContent').innerHTML = detailsContent;
+    // Update the modal content without removing the form
+    const detailsContent = `
+        <p><strong>Tanggal Mulai:</strong> ${tanggalMulai}</p>
+        <p><strong>Tanggal Akhir:</strong> ${tanggalAkhir}</p>
+        <div id="map"></div>
+    `;
+    document.getElementById('modalContent').innerHTML = detailsContent;
 
-            document.getElementById('myDialog').showModal(); // Opens the dialog as a modal
+    document.getElementById('myDialog').showModal(); // Opens the dialog as a modal
 
-            // Initialize the map after the modal has been opened and content is injected
-            const map = L.map('map').setView([latitude, longitude], 13);
+    // Initialize the map after the modal has been opened and content is injected
+    const map = L.map('map').setView([latitude, longitude], 13);
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-            // Add a marker for the specific event
-            let popupContent = `
-                <b>Provinsi:</b> ${province}<br>
-                <b>Kabupaten/Kota:</b> ${regency}<br>
-                <b>Kecamatan:</b> ${district}<br>
-                <b>Kelurahan/Desa:</b> ${village}<br>
-                <b>Alamat:</b> ${address}<br>
-            `;
-            L.marker([latitude, longitude]).addTo(map).bindPopup(popupContent);
-        }
+    // Add a marker for the specific event
+    let popupContent = `
+        <b>Provinsi:</b> ${province}<br>
+        <b>Kabupaten/Kota:</b> ${regency}<br>
+        <b>Kecamatan:</b> ${district}<br>
+        <b>Kelurahan/Desa:</b> ${village}<br>
+        <b>Alamat:</b> ${address}<br>
+    `;
+    L.marker([latitude, longitude]).addTo(map).bindPopup(popupContent);
+}
+
 
         function showBuyTicketModal(biayaTiket, acaraId) {
             const formattedBiayaTiket = formatCurrency(biayaTiket);
